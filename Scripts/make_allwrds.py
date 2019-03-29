@@ -23,7 +23,6 @@ import apsw
 import glob
 from time import sleep
 os.chdir(os.path.expandvars("$REPFOLDER"))
-conn = create_engine("sqlite:///Data/frd.sqlite")
 
 #%% HELPERS
 
@@ -130,13 +129,12 @@ block_until_complete()
 loc = os.path.expandvars("$GITFOLDER/symbol_times_to_analyse.csv")
 Symbols = pd.read_csv(loc).Symbol.unique()
 
-for symbol in Symbols.Symbol:
+for symbol in Symbols:
     make_series(symbol,request+additional_SAS_commands)
 block_until_complete()
 
 #to do list
 pd.Series(Symbols).to_csv("todo_list.csv",index=0)
-
 sp.call("mkdir -f Analysis",shell=True)
 sp.call("rm -f claimed.csv",shell=True)
 sp.call("rm -f ~/tmp_lock_file",shell=True)
