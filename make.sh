@@ -19,6 +19,7 @@ cd $SCRATCH/downloads
 echo "Beginning to install necessary tools like python"
 
 #download anaconda
+echo "Download Anaconda if not exists"
 if [[ "$PATH" != *"anaconda"* ]]; then
 wget https://repo.continuum.io/archive/Anaconda2-5.0.0.1-Linux-x86_64.sh 
 bash Anaconda2-5.0.0.1-Linux-x86_64.sh #install anaconda
@@ -26,6 +27,7 @@ fi
 
 
 #GET PARALLELS, definitely need this
+echo "Download parallels for parallel gnu processing if not exists"
 if [[ $(which parallel) != *"parallel"* ]]; then
 wget http://mirrors.peers.community/mirrors/gnu/parallel/parallel-20170922.tar.bz2 
 tar xvjf parallel-20170922.tar.bz2
@@ -55,6 +57,16 @@ echo "fasteners already installed"
 else
 pip install fasteners
 fi
+
+python -c "import arrow"
+if [ $? -eq 0 ]
+then 
+echo "arrow already installed"
+else
+pip install arrow
+fi
+
+echo "Install some sqlite functions"
 
 export CPPFLAGS="-I$HOME/anaconda2/include"
 export LDFLAGS="-L$HOME/anaconda2/lib"
