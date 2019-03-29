@@ -18,8 +18,9 @@ import subprocess as sp
 #folder where the extracted databases should go
 #%%
 #for each stock this is the parameter combination we will want
-times = pd.read_csv("timestamps.csv",names=["stamp"])
 todo = pd.read_csv("todo_list.csv",names=["stock"])
+symbol_times_to_analyse = pd.read_csv("symbol_times_to_analyse.csv",index_col=0)
+
 MAINQUERY = \
 """
 --example uses 1281445200
@@ -216,33 +217,21 @@ while check_if_any_tasks(todo,claimed):
     conn.enableloadextension(True)
     conn.loadextension(os.path.expanduser("~/libsqlitefunctions.so"))
     #build a list of parameters to supply to the query
-    main_analysis_params = []
+    PARAMS = []
     minutes = range(1,181,1) + range(-90,0,1)
-    for i in times.stamp:
+    relevant_times = symbol_times_to_analyse.earliest_time[\
+            symbol_times_to_analyse.Symbol==stock]
+    for i in relevant_times.unique():
         for m in minutes:
-            main_analysis_params.append(
+            PARAMS.append(
                     {"trademinstart":i,
                      "duration" : 60*m,
                      "sym_root" : stock,
                      "count" : 200 #No. of comparison days
                      })    
     #add the placebo parameters
-    placebo_analysis_params=[]
-#    for i in placebo_tests.unixtime[placebo_tests.TICKER==stock]:
-#        for m in [60]:
-#            placebo_analysis_params.append(
-#                    {"trademinstart":i,
-#                     "duration" : 60*m,
-#                     "sym_root" : stock,
-#                     "count" : 200 #No. of comparison days
-#                     })
-#    #combine
-    PARAMS = main_analysis_params+placebo_analysis_params
-    #get a cursor
     c =conn.cursor()
     print "Starting analysis"
-    alldata = []
-    print "Starting",stock
     rawdata = c.executemany(MAINQUERY, PARAMS).fetchall()
     #make the data long
     #SQLite has bad optimizations for making long, this will be much faster

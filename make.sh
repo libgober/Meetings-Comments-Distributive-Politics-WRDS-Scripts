@@ -76,7 +76,7 @@ echo "Environment is set... moving necessary scripts into replication folder"
 cd $REPFOLDER
 mkdir Scripts
 cp $GITFOLDER/Scripts/* $REPFOLDER/Scripts/
-
+cp $GITFOLDER/symbol_times_to_analyse.csv $REPFOLDER
 echo "Starting analysis"
 clear
 ~/anaconda2/bin/python Scripts/make_allwrds.py
