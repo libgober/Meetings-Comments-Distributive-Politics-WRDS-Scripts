@@ -34,7 +34,7 @@ def block_until_complete():
 
 
 def make_series_if_not_exist(symbol,req):
-    if os.path.exists("Data/{symbol}.csv".format(symbol)):
+    if os.path.exists("Data/{symbol}.csv".format(symbol=symbol)):
         return
     #otherwise do stuff
     request=req.format(symbol=symbol,month="",day="",starttime="9:35",endtime="16:00")
