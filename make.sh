@@ -29,8 +29,9 @@ fi
 #GET PARALLELS, definitely need this
 echo "Download parallels for parallel gnu processing if not exists"
 if [[ $(which parallel) != *"parallel"* ]]; then
-wget http://mirrors.peers.community/mirrors/gnu/parallel/parallel-20170922.tar.bz2 
+wget http://ftp.gnu.org/gnu/parallel/parallel-20170922.tar.bz2 
 tar xvjf parallel-20170922.tar.bz2
+cd parallel-20170922
 ./configure --prefix=$HOME/anaconda2
 make
 make install

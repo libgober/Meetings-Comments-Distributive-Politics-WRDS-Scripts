@@ -31,9 +31,12 @@ def block_until_complete():
     while result != 0:
         sleep(10)
         result = int(sp.check_output('qstat | wc -l',shell=True))
-        
-def make_series(symbol,req):
-    #the script
+
+
+def make_series_if_not_exist(symbol,req):
+    if os.path.exists("Data/{symbol}.csv".format(symbol)):
+        return
+    #otherwise do stuff
     request=req.format(symbol=symbol,month="",day="",starttime="9:35",endtime="16:00")
     with open("{symbol}.sas".format(symbol=symbol),"w+") as f:
         f.write(request)
@@ -122,15 +125,15 @@ block_until_complete()
 
 #%% 
 #first we must the series for the market funds
-make_series("RSP",request)
-make_series("VTI",request)
+make_series_if_not_exist("RSP",request)
+make_series_if_not_exist("VTI",request)
 block_until_complete()
 #file location for listing each stock
 loc = os.path.expandvars("$GITFOLDER/symbol_times_to_analyse.csv")
 Symbols = pd.read_csv(loc).Symbol.unique()
 
 for symbol in Symbols:
-    make_series(symbol,request+additional_SAS_commands)
+    make_series_if_not_exist(symbol,request+additional_SAS_commands)
 block_until_complete()
 
 #to do list
