@@ -26,12 +26,25 @@ os.chdir(os.path.expandvars("$REPFOLDER"))
 
 #%% HELPERS
 
+def adjust_claims_given_completion():
+    claimed = pd.read_csv("claimed.csv")
+    stock_name = lambda x: x.split("/")[1].split(".")[0]
+    finished = map(stock_name,glob.glob("Analysis/*.csv"))
+    adjusted_claimed = claimed[claimed.stock.isin(finished)]
+    adjusted_claimed.to_csv("claimed.csv",index=False)
+
 def block_until_complete():
     result = int(sp.check_output('qstat | wc -l',shell=True))
     while result != 0:
         sleep(10)
         result = int(sp.check_output('qstat | wc -l',shell=True))
 
+def launch_threadsmart_queue():
+    for i in xrange(1,6):
+        #-V switch ensures that the environmental variables are exported
+        call="qsub -V -cwd -N analyzer_no{i} -j y -b y " + \
+        "'seq 24 | ~/anaconda2/bin/parallel -n0 ~/anaconda2/bin/python Scripts/threadsmart_queue.py'"
+        sp.call(call.format(i=i),shell=True)
 
 def make_series_if_not_exist(symbol,req):
     if os.path.exists("Data/{symbol}.csv".format(symbol=symbol)):
@@ -107,6 +120,8 @@ X "~/anaconda2/bin/python ./Scripts/additional_processing.py {symbol}";
 run;
 """
 
+#################### RUN ###########################
+
 #%% We need these days.
 
 with open("make_stock_days.sas","w+") as f:
@@ -141,14 +156,16 @@ pd.Series(Symbols).to_csv("todo_list.csv",index=0)
 sp.call("mkdir -f Analysis",shell=True)
 sp.call("rm -f claimed.csv",shell=True)
 sp.call("rm -f ~/tmp_lock_file",shell=True)
-for i in xrange(1,6):
-    #-V switch ensures that the environmental variables are exported
-    call="qsub -V -cwd -N analyzer_no{i} -j y -b y " + \
-    "'seq 24 | ~/anaconda2/bin/parallel -n0 ~/anaconda2/bin/python Scripts/threadsmart_queue.py'"
-    sp.call(call.format(i=i),shell=True)
-
+#main run
+launch_threadsmart_queue()
 block_until_complete() 
-
+#sometimes we hit slow processors and do not complete
+#given WRDS's week constraint
+#if timeout occurs during write we might have an issue
+#but this seems unlikely
+adjust_claims_given_completion()
+launch_threadsmart_queue()
+block_until_complete() 
 
 sp.call("rm -f analysis.sqlite",shell=True)
 conn2 = create_engine("sqlite:///analysis.sqlite")
